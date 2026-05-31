@@ -1,0 +1,6 @@
+{
+  "name": "القرآن الكريم",
+  "description": "تطبيق إسلامي متكامل لقراءة القرآن الكريم بالرسم العثماني، التلاوات بـ 5 قراء، أذكار الصباح والمساء، البوصلة ومواقيت الصلاة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
