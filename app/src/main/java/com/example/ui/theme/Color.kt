@@ -2,19 +2,29 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Islamic Light Theme Palette
-val EmeraldGreenLight = Color(0xFF0F5A2C)
-val IslamicGoldLight = Color(0xFFB18F4E)
-val LightIvoryBackground = Color(0xFFFAF7F2)
-val LightSurface = Color(0xFFFFFFFF)
+// --- Islamic Emerald & Gold Theme Color Palette ---
 
-// Islamic Dark Theme Palette
-val EmeraldGreenDark = Color(0xFF1D8F49)
-val IslamicGoldDark = Color(0xFFFFD700)
-val DarkEmeraldBackground = Color(0xFF0D1C12)
-val DarkEmeraldSurface = Color(0xFF132B1D)
+// Dark Mode Colors
+val DarkBackground = Color(0xFF0F1512)
+val DarkSurface = Color(0xFF16201B)
+val DarkOnSurface = Color(0xFFE2E9E5)
+val DarkPrimary = Color(0xFF1B6E41)
+val DarkSecondary = Color(0xFFCF9E2B)
+val DarkAccentColor = Color(0xFFFFD700)
 
-// Accents
-val SoftSageGreen = Color(0xFF8FBC8F)
-val DarkSageGreen = Color(0xFF2E8B57)
-val QuranTextSecondary = Color(0xFF7A8D80)
+// Light Mode Colors
+val LightBackground = Color(0xFFFAF6EE)
+val LightSurface = Color(0xFFF2EBE0)
+val LightOnSurface = Color(0xFF2C3E35)
+val LightPrimary = Color(0xFF0F5A2E)
+val LightSecondary = Color(0xFFB5841D)
+val LightAccentColor = Color(0xFFD4AF37)
+
+// Common Accent Tones
+val GoldAccent = Color(0xFFCF9E2B)
+val LightGold = Color(0xFFF0D597)
+val SoftGray = Color(0xFF7D8D85)
+val PureWhite = Color(0xFFFFFFFF)
+val MutedGreen = Color(0xFF4A7c59)
+val CardBackgroundLight = Color(0xFFFFFDF8)
+val CardBackgroundDark = Color(0xFF1F2D26)

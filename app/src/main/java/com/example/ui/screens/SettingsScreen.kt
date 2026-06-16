@@ -1,291 +1,220 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.example.ui.screens
 
-import android.widget.Toast
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TextFormat
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.ReciterConfig
+import com.example.ui.QuranScreen
 import com.example.ui.QuranViewModel
+import com.example.ui.theme.GoldAccent
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
-    viewModel: QuranViewModel,
-    modifier: Modifier = Modifier
-) {
-    val fontSize by viewModel.fontSize.collectAsState()
-    val isDarkMode by viewModel.isDarkMode.collectAsState()
-    val selectedTafsir by viewModel.selectedTafsirType.collectAsState()
-    val selectedReciter by viewModel.selectedPlayReciter.collectAsState()
+fun SettingsScreen(viewModel: QuranViewModel) {
+    val isDarkValue = viewModel.isDarkThemeValue.value
 
-    val context = LocalContext.current
-    var expandedReciter by remember { mutableStateOf(false) }
-    var expandedTafsir by remember { mutableStateOf(false) }
-
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    Scaffold(
+        topBar = {
+            SmallTopAppBar(
+                title = { Text("إعدادات التطبيق والتخصيص", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.navigateTo(QuranScreen.Home) }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "رجوع")
+                    }
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+            )
+        }
+    ) { innerPadding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Screen Title
-            Text(
-                text = "الإعدادات العامة للتطبيق",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // Theme Switcher Section
+            
+            // Theme setting block
             Card(
-                modifier = Modifier.fillMaxWidth().testTag("theme_settings_card"),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().testTag("app_themes_settings_card"),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = if (isDarkMode) Icons.Default.NightsStay else Icons.Default.LightMode,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(text = "الوضع الليلي والنهاري", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                            Text(text = if (isDarkMode) "المظهر الليلي الأخضر داكن مفعل" else "المظهر النهاري العاجي الفاتح مفعل", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                        Icon(Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("مظهر التطبيق (الوضع الداكن والفاتح):", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ThemeOptionBtn("الوضع التلقائي", isDarkValue == null, Modifier.weight(1f)) {
+                            viewModel.isDarkThemeValue.value = null
+                        }
+                        ThemeOptionBtn("الوضع الداكن", isDarkValue == true, Modifier.weight(1f)) {
+                            viewModel.isDarkThemeValue.value = true
+                        }
+                        ThemeOptionBtn("الوضع الفاتح", isDarkValue == false, Modifier.weight(1f)) {
+                            viewModel.isDarkThemeValue.value = false
                         }
                     }
-                    Switch(
-                        checked = isDarkMode,
-                        onCheckedChange = { viewModel.toggleTheme() },
-                        modifier = Modifier.testTag("theme_settings_switch")
-                    )
                 }
             }
 
-            // Font Resizing Section
+            // Typography sizes adjustment block
             Card(
-                modifier = Modifier.fillMaxWidth().testTag("font_settings_card"),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().testTag("typography_settings_card"),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.FormatSize,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(text = "حجم خط الآيات والسور", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.TextFormat, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("ضبط حجم خط السور والآيات:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Slider(
+                        value = viewModel.fontSizeMultiplier.value,
+                        onValueChange = { viewModel.fontSizeMultiplier.value = it },
+                        valueRange = 0.8f..2.0f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "تصغير", fontSize = 12.sp)
-                        Slider(
-                            value = fontSize,
-                            onValueChange = { viewModel.setFontSize(it) },
-                            valueRange = 16f..48f,
-                            modifier = Modifier.weight(1f).testTag("font_size_slider"),
-                            colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                                activeTrackColor = MaterialTheme.colorScheme.primary
+                        Text("صغير جداً", fontSize = 11.sp, color = Color.Gray)
+                        Text("افتراضي (${"%.1f".format(viewModel.fontSizeMultiplier.value)}x)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("كبير جداً", fontSize = 11.sp, color = Color.Gray)
+                    }
+                }
+            }
+
+            // Download All Real Holy Quran Chapters Block
+            val isDownloading = viewModel.isDownloadingRealQuran.collectAsState().value
+            val progressString = viewModel.downloadProgressString.collectAsState().value
+
+            Card(
+                modifier = Modifier.fillMaxWidth().testTag("download_all_quran_card"),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CloudDownload, contentDescription = null, tint = GoldAccent)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("تحميل سور القرآن الكريم الحقيقية بالكامل:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (isDownloading) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(color = GoldAccent)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = progressString,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
                             )
-                        )
-                        Text(text = "تكبير", fontSize = 12.sp)
+                        }
+                    } else {
+                        Button(
+                            onClick = { viewModel.downloadAllRealSurahs() },
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldAccent),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("تنزيل الـ 114 سورة كواجهة موثقة حقيقية", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "مثال الخط: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                        fontSize = fontSize.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        text = "هذه الخطوة تقوم بجلب السور الحقيقية كاملة بالتفصيل والتفاسير المعتمدة من خوادم (api.alquran.cloud) آلياً لحفظها أوفلاين في التطبيق للأبد.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 16.sp
                     )
                 }
             }
 
-            // Default Reciter Section Selection
+            // About application credentials / specifications block
             Card(
-                modifier = Modifier.fillMaxWidth().testTag("reciter_settings_card"),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expandedReciter = true }
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.RecordVoiceOver,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(text = "القارئ المفضل الافتراضي", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                            Text(text = selectedReciter.name, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                }
-
-                DropdownMenu(
-                    expanded = expandedReciter,
-                    onDismissRequest = { expandedReciter = false }
-                ) {
-                    ReciterConfig.list.forEach { r ->
-                        DropdownMenuItem(
-                            text = { Text(r.name, fontWeight = FontWeight.Bold) },
-                            onClick = {
-                                viewModel.selectReciter(r)
-                                expandedReciter = false
-                                Toast.makeText(context, "تم تغيير القارئ الافتراضي إلى ${r.name}", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Default Tafsir Section Selection
-            Card(
-                modifier = Modifier.fillMaxWidth().testTag("tafsir_settings_card"),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expandedTafsir = true }
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.MenuBook,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(text = "التفسير الافتراضي المعتمد", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                            Text(text = "تفسير $selectedTafsir", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                }
-
-                DropdownMenu(
-                    expanded = expandedTafsir,
-                    onDismissRequest = { expandedTafsir = false }
-                ) {
-                    val tafsirs = listOf("السعدي", "ابن كثير", "الطبري")
-                    tafsirs.forEach { t ->
-                        DropdownMenuItem(
-                            text = { Text("تفسير $t", fontWeight = FontWeight.Bold) },
-                            onClick = {
-                                viewModel.setTafsirType(t)
-                                expandedTafsir = false
-                                Toast.makeText(context, "تم تعيين التفسير الافتراضي: $t", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Backup & Restore simulation
-            Card(
-                modifier = Modifier.fillMaxWidth().testTag("backup_settings_card"),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Backup,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(text = "النسخ الاحتياطي السحابي والاستعادة", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                Toast.makeText(context, "تم رفع نسخة احتياطية من العلامات المرجعية وحالتك بنجاح ✅", Toast.LENGTH_LONG).show()
-                            },
-                            modifier = Modifier.weight(1f).testTag("backup_btn"),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("نسخ احتياطي", fontSize = 11.sp)
-                        }
-
-                        ElevatedButton(
-                            onClick = {
-                                Toast.makeText(context, "تم استعادة بيانات علاماتك وحالتك بنجاح ومزامنتها دفترياً ✅", Toast.LENGTH_LONG).show()
-                            },
-                            modifier = Modifier.weight(1f).testTag("restore_btn"),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("استعادة البيانات", fontSize = 11.sp)
-                        }
-                    }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "📜 معلومات الترخيص والمصادر المعتمدة:",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "• خطوط الرسم العثماني مستوحاة من مجمع الملك فهد لطباعة المصحف الشريف بـ المدينة المنورة.\n• التفاسير المعتمدة بالتطبيق من كتب: تفسير السعدي (تيسير الكريم الرحمن)، تفسير ابن كثير، والتفسير الميسر.\n• تطبيق القرآن الكريم الإصدار 1.0.0. آمن وموثوق ومبني باستخدام معايير أندرويد الحديثة ومحمي بالكامل.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 20.sp
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ThemeOptionBtn(label: String, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (active) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (active) Color.White else MaterialTheme.colorScheme.onSurface
+        )
     }
 }

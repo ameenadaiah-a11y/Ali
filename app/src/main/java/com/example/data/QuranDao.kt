@@ -6,61 +6,83 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface QuranDao {
 
+    // --- Surahs ---
     @Query("SELECT * FROM surahs ORDER BY number ASC")
     fun getAllSurahs(): Flow<List<SurahEntity>>
-
-    @Query("SELECT * FROM surahs WHERE number = :surahNum LIMIT 1")
-    suspend fun getSurahByNumber(surahNum: Int): SurahEntity?
-
-    @Query("SELECT * FROM ayahs WHERE surahNumber = :surahNum ORDER BY ayahNumber ASC")
-    fun getAyahsForSurah(surahNum: Int): Flow<List<AyahEntity>>
-
-    @Query("SELECT * FROM ayahs WHERE isBookmarked = 1")
-    fun getBookmarkedAyahs(): Flow<List<AyahEntity>>
-
-    @Query("SELECT * FROM ayahs WHERE textArabic LIKE '%' || :query || '%'")
-    fun searchAyahs(query: String): Flow<List<AyahEntity>>
-
-    @Query("UPDATE ayahs SET isBookmarked = :isBookmarked WHERE surahNumber = :surahNum AND ayahNumber = :ayahNum")
-    suspend fun updateBookmark(surahNum: Int, ayahNum: Int, isBookmarked: Boolean)
-
-    @Query("SELECT * FROM dhikrs WHERE category = :category")
-    fun getDhikrsByCategory(category: String): Flow<List<DhikrEntity>>
-
-    @Query("UPDATE dhikrs SET currentCount = :count WHERE id = :id")
-    suspend fun updateDhikrCount(id: Int, count: Int)
-
-    @Query("UPDATE dhikrs SET currentCount = 0 WHERE category = :category")
-    suspend fun resetDhikrCountsByCategory(category: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSurahs(surahs: List<SurahEntity>)
 
+    // --- Ayahs ---
+    @Query("SELECT * FROM ayahs WHERE surahNumber = :surahNum ORDER BY ayahNumber ASC")
+    fun getAyahsForSurah(surahNum: Int): Flow<List<AyahEntity>>
+
+    @Query("SELECT * FROM ayahs WHERE page = :page ORDER BY surahNumber ASC, ayahNumber ASC")
+    fun getAyahsForPage(page: Int): Flow<List<AyahEntity>>
+
+    @Query("SELECT * FROM ayahs WHERE juz = :juz ORDER BY surahNumber ASC, ayahNumber ASC")
+    fun getAyahsForJuz(juz: Int): Flow<List<AyahEntity>>
+
+    @Query("SELECT * FROM ayahs WHERE textArabic LIKE '%' || :query || '%' ORDER BY surahNumber ASC, ayahNumber ASC")
+    suspend fun searchAyahsSync(query: String): List<AyahEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAyahs(ayahs: List<AyahEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDhikrs(dhikrs: List<DhikrEntity>)
-
-    // --- Wird Features DAO ---
-    @Query("SELECT * FROM wird_config WHERE id = 1 LIMIT 1")
-    fun getWirdConfigFlow(): Flow<WirdConfigEntity?>
-
-    @Query("SELECT * FROM wird_config WHERE id = 1 LIMIT 1")
-    suspend fun getWirdConfig(): WirdConfigEntity?
+    // --- Bookmarks ---
+    @Query("SELECT * FROM bookmarks ORDER BY timestamp DESC")
+    fun getAllBookmarks(): Flow<List<BookmarkEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdateWirdConfig(config: WirdConfigEntity)
+    suspend fun insertBookmark(bookmark: BookmarkEntity)
 
-    @Query("SELECT * FROM wird_logs ORDER BY timestamp DESC")
-    fun getAllWirdLogsFlow(): Flow<List<WirdLogEntity>>
+    @Delete
+    suspend fun deleteBookmark(bookmark: BookmarkEntity)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM bookmarks WHERE id = :id)")
+    fun isBookmarked(id: String): Flow<Boolean>
+
+    // --- Hifz Plans ---
+    @Query("SELECT * FROM hifz_plans ORDER BY timestamp DESC")
+    fun getAllHifzPlans(): Flow<List<HifzPlanEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWirdLog(log: WirdLogEntity)
+    suspend fun insertHifzPlan(plan: HifzPlanEntity)
 
-    @Query("DELETE FROM wird_logs")
-    suspend fun clearWirdLogs()
+    @Delete
+    suspend fun deleteHifzPlan(plan: HifzPlanEntity)
 
-    @Query("UPDATE wird_config SET currentPage = :page WHERE id = 1")
-    suspend fun updateWirdCurrentPage(page: Int)
+    // --- Adhkar ---
+    @Query("SELECT * FROM adhkar WHERE category = :category ORDER BY id ASC")
+    fun getAdhkarByCategory(category: String): Flow<List<DhikrEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAdhkar(adhkar: List<DhikrEntity>)
+
+    // --- Notes ---
+    @Query("SELECT * FROM verse_notes ORDER BY timestamp DESC")
+    fun getAllNotes(): Flow<List<NoteEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertNote(note: NoteEntity)
+
+    @Delete
+    suspend fun deleteNote(note: NoteEntity)
+
+    // --- Daily Stats ---
+    @Query("SELECT * FROM daily_stats WHERE date = :date")
+    fun getStatsForDate(date: String): Flow<DailyStatsEntity?>
+
+    @Query("SELECT * FROM daily_stats ORDER BY date DESC LIMIT 7")
+    fun getRecentStats(): Flow<List<DailyStatsEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateStats(stats: DailyStatsEntity)
+
+    // --- Reading History ---
+    @Query("SELECT * FROM reading_history WHERE id = 1")
+    fun getReadingHistory(): Flow<ReadingHistoryEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReadingHistory(history: ReadingHistoryEntity)
 }
